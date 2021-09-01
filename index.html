@@ -1,0 +1,165 @@
+<html>
+<head>
+    <title>Animation</title>
+<style>
+canvas {
+  border: 1px solid black;
+}
+button {
+    width: 180px;
+    height: 60px;
+    font-size: 30px;
+}
+</style>
+</head>
+<body>
+    <div>
+        <canvas width="300" height="200" id="animation"></canvas>
+    </div>
+    <div>
+        <button type="button" onclick="stopStart()">stop/start</button>
+    </div>
+    <div id="keydiv">
+        <canvas id="key"></canvas>
+    </div>
+<script>
+// based on https://dev.to/martyhimmel/animating-sprite-sheets-with-javascript-ag3
+
+// Your sprite sheet goes here
+// Put in the samen folder as this file, and be sure to include the ./ in front of the filename
+const spriteFile = './running.png';
+//const spriteFile = './light-bulb.jpeg';
+//const spriteFile = './fire.jpeg';
+
+let img = new Image();
+img.src = spriteFile;
+
+img.onload = function() {
+  init();
+};
+
+let canvas = document.getElementById('animation');
+let ctx = canvas.getContext('2d');
+
+// TODO: read the config values from input widgets (drop downs???)
+// TODO: step button
+// TODO: move sprites if we want
+// TODO: different sprite directions
+// TODO: put on jspacco.github.io with ways to load sprite sheets
+// TODO: instructions for students on how to use Illustartor to generate sprite sheets
+// TODO: settings in the URL???
+// TODO: load a json file to set all of the settings
+// TODO: 
+
+//
+// These values control the animation
+//
+
+// Scale factor to make the image larger or smaller
+const scale = 2;
+// width (in pixels) of each sprite
+const width = 55;
+// height (in pixels) of each sprite
+const height = 76;
+// number of rows of sprites in the sprite sheet
+// (rows are up/down, so like a Y coord)
+const numRows = 2;
+// number of colums of sprites in the sprite sheet
+// (columns are left/right, so like an X coord)
+const numCols = 6;
+//
+// frames per second
+// possible values are: 1, 2, 3, 4, 5, 6, 10, 20, 30, 60
+//
+const framesPerSecond = 10;
+
+//
+// These are computed based on the values above, so don't change these
+//
+const scaledWidth = scale * width;
+const scaledHeight = scale * height;
+const numSprites = numRows * numCols;
+// Scale based on 60 frames per second
+// So, to get 1 FPS, we divide 60 by FPS
+// To get 15 FPS, we divide 60 / 15 and the scaleFactor is 4
+const speedFactor = Math.floor(60 / framesPerSecond);
+console.log(`speedFactor ${speedFactor}`);
+
+// key image
+let keyimg = new Image();
+keyimg.src = spriteFile;
+
+const keyWidth = numCols * width;
+const keyHeight = numRows * height;
+
+let keycanvas = document.getElementById('key');
+//console.log(`${keycanvas.width}, ${keycanvas.height}`);
+keycanvas.width  = keyWidth;
+keycanvas.height = keyHeight;
+//console.log(`${keycanvas.width}, ${keycanvas.height}`);
+let keyctx = keycanvas.getContext('2d');
+
+//
+// Other control variables
+//
+let pause = false;
+
+function stopStart() {
+    // toggle pause button
+    console.log(`pause animation? ${pause}`);
+    pause = !pause;
+}
+
+function drawFrame(frameX, frameY, canvasX, canvasY) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img,
+        frameX * width, frameY * height, width, height,
+        canvasX, canvasY, scaledWidth, scaledHeight);
+}
+
+function drawKeyHighlight(row, col) {
+    keyctx.clearRect(0, 0, numCols * width, numRows * height);
+    keyctx.drawImage(keyimg,
+        0, 0, keyWidth, keyHeight,
+        0, 0, keyWidth, keyHeight);
+    keyctx.beginPath();
+    keyctx.rect(col * width, row * height, width, height);
+    keyctx.stroke();
+}
+
+const cycleLoop = [0, 1, 0, 2];
+let currentLoopIndex = 0;
+let frameCount = 0;
+let currentDirection = 0;
+
+function step() {
+    if (!pause){
+        frameCount++;
+
+        // speed up or slow down the animation
+        let imageCount = Math.floor(frameCount / speedFactor);
+        let col = imageCount % numCols;
+        let row = Math.floor(imageCount / numCols) % numRows;
+        //console.log(`${frameCount} ${imageCount} ${row} ${col}`);
+
+        drawFrame(col, row,  0, 0);
+        drawKeyHighlight(row, col);
+        currentLoopIndex++;
+
+        // if (currentLoopIndex >= cycleLoop.length) {
+        //     currentLoopIndex = 0;
+        //     currentDirection++;
+        // }
+        // if (currentDirection >= 4) {
+        //     currentDirection = 0;
+        // }
+    }
+    window.requestAnimationFrame(step);
+}
+
+function init() {
+    window.requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>
